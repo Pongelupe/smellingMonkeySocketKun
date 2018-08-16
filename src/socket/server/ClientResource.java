@@ -1,0 +1,96 @@
+package socket.server;
+import java.io.PrintStream;
+import java.net.Socket;
+import java.util.Optional;
+import java.util.Scanner;
+import java.util.concurrent.Callable;
+
+import socket.server.protocol.ProtocolType;
+
+public class ClientResource implements Callable<Void> {
+
+	private final Socket socketConnection;
+	private String nome;
+	private Scanner inputStream;
+	private PrintStream outputStream;
+
+	private ClientResource(Socket socketConnection, String nome,
+			Scanner inputStream, PrintStream outputStream) {
+		this.socketConnection = socketConnection;
+		this.nome = nome;
+		this.inputStream = inputStream;
+		this.outputStream = outputStream;
+	}
+
+	public static Callable<Optional<ClientResource>> of(
+			Socket socketConnection) {
+		return () -> {
+			try {
+				PrintStream sSerOut = new PrintStream(
+						socketConnection.getOutputStream());
+				Scanner sServIn = new Scanner(
+						socketConnection.getInputStream());
+
+				sSerOut.println("who is there?");
+				String msgIn = sServIn.nextLine();
+
+				String[] mesage = msgIn.split(" ");
+				if (mesage[0].equals(ProtocolType.HELLO.toString())) {
+
+					ClientResource client = new ClientResource(socketConnection,
+							mesage[1], sServIn, sSerOut);
+
+					sSerOut.println(
+							client.getNome() + " is connected! Welcome!");
+					sSerOut.flush();
+
+					return Optional.of(client);
+				} else {
+					sSerOut.println(
+							"User not authenticated! HELLO expected! Connection closed");
+					socketConnection.close();
+					sServIn.close();
+					return Optional.empty();
+				}
+			} catch (Exception e) {
+				return Optional.empty();
+			}
+		};
+	}
+
+	public Socket getSocketConnection() {
+		return socketConnection;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public Scanner getInputStream() {
+		return inputStream;
+	}
+
+	public PrintStream getOutputStream() {
+		return outputStream;
+	}
+
+	@Override
+	public Void call() throws Exception {
+		while (this.inputStream.hasNextLine()) {
+			try {
+				String line = this.inputStream.nextLine();
+				System.out.println(this.nome + ": " + line);
+
+				String command = line.split(" ")[0];
+				Boolean sucess = ProtocolType.valueOf(command).apply(nome,
+						line.substring(command.length() + 1));
+
+				this.outputStream.println(sucess ? "OK" : "Not good");
+			} catch (Exception e) {
+				this.outputStream.println("Command not fond");
+			}
+		}
+		return null;
+	}
+
+}
