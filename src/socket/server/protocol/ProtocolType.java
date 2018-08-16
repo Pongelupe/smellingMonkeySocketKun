@@ -8,21 +8,20 @@ import socket.server.ServidorTCP;
 
 public enum ProtocolType {
 	HELLO(null), ALL((who, params) -> {
-		ServidorTCP.getConnections().entrySet().stream()
-				.filter(user -> !who.equals(user.getKey()))
+		ServidorTCP.getConnections().entrySet().stream().filter(user -> !who.equals(user.getKey()))
 				.map(Entry<String, ClientResource>::getValue)
-				.forEach(user -> user.getOutputStream()
-						.println(who + " -> to all: " + params));
+				.forEach(user -> user.getOutputStream().println(who + " -> to all: " + params));
 		return true;
 	}), DIRECT((who, params) -> {
 		String to = params.split(" ")[0];
-		ServidorTCP.getConnections().entrySet().stream()
-				.filter(user -> to.equals(user.getKey())).findFirst()
+		ServidorTCP.getConnections().entrySet().stream().filter(user -> to.equals(user.getKey())).findFirst()
 				.ifPresent(user -> user.getValue().getOutputStream()
-						.println(who + " -> direct to you: "
-								+ params.substring(to.length() + 1)));
+						.println(who + " -> direct to you: " + params.substring(to.length() + 1)));
 
 		return true;
+	}), BYE((who, params) -> {
+		System.out.println(who + " has disconnected");
+		return ServidorTCP.getConnections().remove(who) != null;
 	});
 
 	/**

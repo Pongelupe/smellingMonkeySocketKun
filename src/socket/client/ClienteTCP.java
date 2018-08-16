@@ -1,4 +1,5 @@
 package socket.client;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
@@ -23,8 +24,7 @@ public class ClienteTCP {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println(
-					" -C- O seguinte problema ocorreu : \n" + e.toString());
+			System.out.println(" -C- O seguinte problema ocorreu : \n" + e.toString());
 		}
 	}
 
@@ -36,9 +36,9 @@ public class ClienteTCP {
 
 				while (keyboard.hasNextLine()) {
 					String line = keyboard.nextLine();
-					if (line.equals("bye"))
-						break;
 					out.println(line);
+					if (line.equals("BYE"))
+						break;
 				}
 
 				keyboard.close();

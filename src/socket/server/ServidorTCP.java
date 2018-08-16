@@ -1,8 +1,10 @@
 package socket.server;
+
 import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -21,18 +23,22 @@ public class ServidorTCP {
 			System.out.println("Server running @ 7000");
 			ServerSocket socktServ = new ServerSocket(portaServidor);
 
-			while (online.get()) {
-				Future<Optional<ClientResource>> clientFuture = pool
-						.submit(ClientResource.of(socktServ.accept()));
-				pool.execute(ServidorTCP.connect(clientFuture));
-			}
+			pool.submit(() -> {
+				while (online.get()) {
+					Future<Optional<ClientResource>> clientFuture = pool.submit(ClientResource.of(socktServ.accept()));
+					pool.execute(ServidorTCP.connect(clientFuture));
+				}
+				return null;
+			});
 
-			System.out.println("Server is full");
-			System.out.println(" -S- Conexao finalizada...");
+			Scanner scanner = new Scanner(System.in);
+			System.out.println("press any key to stop the server...");
+			scanner.nextLine();
+			scanner.close();
+			pool.shutdown();
 			socktServ.close();
 		} catch (Exception e) {
-			System.out.println(
-					" -S- O seguinte problema ocorreu : \n" + e.toString());
+			System.out.println(" -S- O seguinte problema ocorreu : \n" + e.toString());
 		}
 	}
 
@@ -40,8 +46,7 @@ public class ServidorTCP {
 		return CONNECTIONS;
 	}
 
-	private static Runnable connect(
-			Future<Optional<ClientResource>> clientFuture) {
+	private static Runnable connect(Future<Optional<ClientResource>> clientFuture) {
 		return () -> {
 			try {
 				clientFuture.get().ifPresent(ServidorTCP::connect);
