@@ -30,6 +30,7 @@ public enum ProtocolType {
 		ServidorTCP.getConnections().entrySet().stream().filter(user -> who.equals(user.getKey())).findFirst()
 				.ifPresent(user -> user.getValue().getOutputStream()
 						.println(resposta));
+		return true;
 	});
 
 	/**
