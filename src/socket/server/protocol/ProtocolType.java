@@ -22,6 +22,14 @@ public enum ProtocolType {
 	}), BYE((who, params) -> {
 		System.out.println(who + " has disconnected");
 		return ServidorTCP.getConnections().remove(who) != null;
+	}), LIST((who,params) -> {
+		String resposta = null;
+		for(ClientResource c -> ServidorTCP.getConnections()){
+			resposta = resposta + c.getNome() + "\n";
+		}
+		ServidorTCP.getConnections().entrySet().stream().filter(user -> who.equals(user.getKey())).findFirst()
+				.ifPresent(user -> user.getValue().getOutputStream()
+						.println(resposta));
 	});
 
 	/**
