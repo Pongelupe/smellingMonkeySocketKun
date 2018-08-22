@@ -19,6 +19,13 @@ public enum ProtocolType {
 						.println(who + " -> direct to you: " + params.substring(to.length() + 1)));
 
 		return true;
+	}), LIST((who, params) -> {
+		ClientResource resource = ServidorTCP.getConnections().get(who);
+		resource.getOutputStream().println("Online users:");
+		ServidorTCP.getConnections().entrySet().stream().filter(user -> !who.equals(user.getKey()))
+				.map(Entry<String, ClientResource>::getValue)
+				.forEach(user -> resource.getOutputStream().println(user.getNome()));
+		return true;
 	}), BYE((who, params) -> {
 		System.out.println(who + " has disconnected");
 		return ServidorTCP.getConnections().remove(who) != null;

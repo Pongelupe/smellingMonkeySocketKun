@@ -17,11 +17,10 @@ public class ServidorTCP {
 	private static AtomicBoolean online = new AtomicBoolean(true);
 
 	public static void main(String... args) {
-		try {
-			int portaServidor = 7000;
 
+		final int portaServidor = 7000;
+		try (ServerSocket socktServ = new ServerSocket(portaServidor)) {
 			System.out.println("Server running @ 7000");
-			ServerSocket socktServ = new ServerSocket(portaServidor);
 
 			pool.submit(() -> {
 				while (online.get()) {
@@ -35,8 +34,8 @@ public class ServidorTCP {
 			System.out.println("press any key to stop the server...");
 			scanner.nextLine();
 			scanner.close();
+			online.set(false);
 			pool.shutdown();
-			socktServ.close();
 		} catch (Exception e) {
 			System.out.println(" -S- O seguinte problema ocorreu : \n" + e.toString());
 		}
